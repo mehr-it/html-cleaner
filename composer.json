@@ -1,0 +1,28 @@
+{
+  "name": "mehr-it/html-cleaner",
+  "description": "HTML cleaner to remove unwanted tags and attributes and elements from HTML fragments",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Christopher Mieger",
+      "email": "mail@mehr-it.info"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "MehrIt\\HtmlCleaner\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "MehrItHtmlCleanerTest\\": "test/"
+    }
+  },
+  "require": {
+    "php": ">=7.1.0",
+    "masterminds/html5": "^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.4"
+  }
+}
