@@ -89,6 +89,41 @@ text content of a node:
     // output: "<p>A big search engine is called Google.</p>"
     
     
-You may event pass a `Closure` as replacement to generate a replacement value such as a tag name,
+You may even pass a `Closure` as replacement to generate a replacement value such as a tag name,
 `null` or event a newly created `DOMNode`. If the callback returns `false` the corresponding node
 is not replaced but removed.
+
+
+## Unwrapping nodes
+Sometimes replacing nodes is not what you want. Often you might want to get rid of some nodes
+but keep their content. You may specify these nodes using the "unwrap" list:
+
+    $html = '<p>This is <b>me</b> and you</p>
+
+    $cleaned = (new HtmlCleaner())
+       ->setUnwraps([
+           'p',
+       ])
+       ->cleanFragment($html);
+    
+    // output: "This is <b>me</b> and you"
+    
+You may pass `'*'` as a wildcard to unwrap any nodes. Note: **Replacements take precedence
+over unwraps!**
+
+If you want to unwrap a node and prepend/append other elements, an associative array may
+be passed:
+
+    $html = '<p>This is <b>me</b> and you</p>
+    
+    $cleaned = (new HtmlCleaner())
+       ->setUnwraps([
+           'p',
+           'b' => ['about ', ':innerHtml', ', my life'],
+       ])
+       ->cleanFragment($html);
+    
+    // output: "This is about me, my life and you"
+    
+The string `':innerHTML'` has a special meaning and will replaced with all child nodes
+of the unwrapped node. Any other strings are converted to text nodes.

@@ -357,6 +357,20 @@
 
 		}
 
+		public function testReplace_wildcard() {
+
+			$html = "<div class=\"my-class\" id=\"15\" data-x=\"vx\"><p class=\"xp\">Text <span id='1'>number 1</span></p><b>old</b><!-- the comment -->s<![CDATA[ data-content ]]></div>";
+
+			$cleaned = ($cleaner = new HtmlCleaner())
+				->setReplacements([
+					'*' => 'b',
+				])
+				->cleanFragment($html);
+
+			$this->assertSame("<b><b>Text <b>number 1</b></b><b>old</b><!-- the comment -->s<![CDATA[ data-content ]]></b>", trim($cleaned));
+
+		}
+
 		public function testReplace_callback_returningString() {
 
 			$html = "<div class=\"my-class\" id=\"15\" data-x=\"vx\"><p class=\"xp\">Text <span id='1'>number 1</span></p><b>old</b><!-- the comment -->s<![CDATA[ data-content ]]></div>";
@@ -449,5 +463,48 @@
 
 		}
 
+		public function testUnwrap() {
+
+			$html = "<div class=\"my-class\" id=\"15\" data-x=\"vx\"><p class=\"xp\">Text <span id=\"1\">number 1</span></p><b>old</b><!-- the comment -->s<![CDATA[ data-content ]]></div>";
+
+			$cleaned = ($cleaner = new HtmlCleaner())
+				->setUnwraps([
+					'p',
+					'b',
+				])
+				->cleanFragment($html);
+
+			$this->assertSame("<div class=\"my-class\" id=\"15\" data-x=\"vx\">Text <span id=\"1\">number 1</span>old<!-- the comment -->s<![CDATA[ data-content ]]></div>", trim($cleaned));
+
+		}
+
+		public function testUnwrap_wildcard() {
+
+			$html = "<div class=\"my-class\" id=\"15\" data-x=\"vx\"><p class=\"xp\">Text <span id=\"1\">number 1</span></p><b>old</b><!-- the comment -->s<![CDATA[ data-content ]]></div>";
+
+			$cleaned = ($cleaner = new HtmlCleaner())
+				->setUnwraps([
+					'*',
+				])
+				->cleanFragment($html);
+
+			$this->assertSame("Text number 1old<!-- the comment -->s<![CDATA[ data-content ]]>", trim($cleaned));
+
+		}
+
+		public function testUnwrap_custom() {
+
+			$html = "<div class=\"my-class\" id=\"15\" data-x=\"vx\"><p class=\"xp\">Text <span id=\"1\">number 1</span></p><b>old</b><!-- the comment -->s<![CDATA[ data-content ]]></div>";
+
+			$cleaned = ($cleaner = new HtmlCleaner())
+				->setUnwraps([
+					'p' => [' ', ':innerHtml', ' '],
+					'b',
+				])
+				->cleanFragment($html);
+
+			$this->assertSame("<div class=\"my-class\" id=\"15\" data-x=\"vx\"> Text <span id=\"1\">number 1</span> old<!-- the comment -->s<![CDATA[ data-content ]]></div>", trim($cleaned));
+
+		}
 
 	}

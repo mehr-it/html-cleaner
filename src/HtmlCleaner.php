@@ -45,6 +45,8 @@
 			self::FILTER_ATTRIBUTE => null,
 		];
 
+		protected $unwraps = [];
+
 		protected $replacements = [];
 
 		protected $removeStack = [];
@@ -275,6 +277,35 @@
 		}
 
 		/**
+		 * Gets the HTML nodes to unwrap
+		 * @return string[] The node to unwrap. '*' is a wildcard
+		 */
+		public function getUnwraps(): array {
+			return $this->unwraps;
+		}
+
+
+		/**
+		 * Sets the HTML nodes to unwrap
+		 * @param string[]|string[][]|DOMNode[][] $unwraps The node to unwrap. '*' is a wildcard
+		 * @return $this
+		 */
+		public function setUnwraps(array $unwraps): HtmlCleaner {
+
+			$map = [];
+			foreach($unwraps as $key => $value) {
+				if (is_numeric($key))
+					$map[$value] = [':innerHtml'];
+				else
+					$map[$key] = is_iterable($value) ? $value : [$value];
+			}
+
+			$this->unwraps = $map;
+
+			return $this;
+		}
+
+		/**
 		 * Cleans the given HTML fragment applying the current filters
 		 * @param string $fragment The HTML fragment
 		 * @return string The cleaned HTML fragment
@@ -377,7 +408,32 @@
 				if (!$parent)
 					throw new RuntimeException('Cannot replace node which is not assigned to a parent node.');
 
-				$parent->replaceChild($replacement, $node);
+
+				if (is_array($replacement)) {
+
+					foreach($replacement as $curr) {
+						if ($curr === ':innerHtml') {
+							while ($currChild = $node->firstChild) {
+								$node->removeChild($currChild);
+								$parent->insertBefore($currChild, $node);
+							}
+						}
+						else if ($curr instanceof DOMNode) {
+							$parent->insertBefore($curr, $node);
+						}
+						else if (is_string($curr)) {
+							$parent->insertBefore($this->ownerDocument->createTextNode($curr), $node);
+						}
+						else {
+							throw new \RuntimeException('Invalid replacement specified');
+						}
+					}
+
+					$parent->removeChild($node);
+				}
+				else {
+					$parent->replaceChild($replacement, $node);
+				}
 			}
 
 		}
@@ -404,8 +460,14 @@
 					}
 
 					// check for replacement
-					if (array_key_exists($node->localName, $this->replacements)) {
+					$replacement = false;
+					if (array_key_exists($node->localName, $this->replacements))
 						$replacement = $this->replacements[$node->localName];
+					else if (array_key_exists('*', $this->replacements))
+						$replacement = $this->replacements['*'];
+
+					// apply replacement if any
+					if ($replacement !== false) {
 
 						$replacingNode = null;
 						if (is_callable($replacement))
@@ -449,8 +511,14 @@
 						break;
 					}
 
+					// unwrap
+					$unwrap = $this->unwraps[$node->localName] ?? $this->unwraps['*'] ?? false;
+					if ($unwrap)
+						$this->replace($node, $unwrap);
+
+
 					// filter attributes
-					if ($node->hasAttributes()) {
+					if (!$unwrap && $node->hasAttributes()) {
 						$attrToRemove = [];
 						foreach($node->attributes as $curr) {
 							$this->currentAttr = $curr;
@@ -510,7 +578,7 @@
 		/**
 		 * Replaces the node with another one
 		 * @param DOMNode $node The node
-		 * @param DOMNode $replacement The replacement
+		 * @param DOMNode|DOMNode[]|string[] $replacement The replacement
 		 */
 		protected function replace($node, $replacement) {
 
