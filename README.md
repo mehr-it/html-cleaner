@@ -18,7 +18,7 @@ removed.
         ->setTagWhitelist(['p', 'br'])
         ->cleanFragment($html);
         
-Instead of a whitelist, a blacklist can be used via `setTagBlacklist()` or event a callback
+Instead of a whitelist, a blacklist can be used via `setTagBlacklist()` or even a callback
 which receives the tag name and must return `true` to keep the designated tag:
 
     $cleaned = (new HtmlCleaner())
@@ -30,7 +30,7 @@ which receives the tag name and must return `true` to keep the designated tag:
      
 ## Restrict element types
 HTML also contains other elements, such as comments and CDATA. They cannot be filtered by
-tag name, but using the element filter functions in the same way as for tag restriction.
+tag name, but by using the element filter functions in the same way as for tag restriction.
 Following example only allows tags and text nodes:
 
     $cleaned = (new HtmlCleaner())
@@ -90,7 +90,7 @@ text content of a node:
     
     
 You may even pass a `Closure` as replacement to generate a replacement value such as a tag name,
-`null` or event a newly created `DOMNode`. If the callback returns `false` the corresponding node
+`null` or even a newly created `DOMNode`. If the callback returns `false` the corresponding node
 is not replaced but removed.
 
 
